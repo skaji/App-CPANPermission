@@ -1,0 +1,20 @@
+#!perl
+use strict;
+use warnings;
+use App::CPANPermission;
+use App::CPANPermission::Table;
+
+my $module = shift || '-h';
+die "Usage: $0 MODULE\n" if $module =~ /^(-h|--help)$/;
+
+my ($res, $err) = App::CPANPermission->new->get_permission_for($module);
+die "$err\n" unless $res;
+
+print "distribution: $res->{distfile}\n\n";
+my $table = App::CPANPermission::Table->new(qw(module_name owner co_maintainers));
+for my $perm (@{$res->{permission}}) {
+    my @co = @{ $perm->{co_maintainers} || [] };
+    my $co = @co ? join(",", @co) : 'N/A';
+    $table->add($perm->{module_name}, $perm->{owner} || 'N/A', $co);
+}
+print $table->stringify;
