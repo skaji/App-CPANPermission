@@ -23,12 +23,11 @@ sub get_permission_for {
     my $wantarray = wantarray;
     my $err;
     (my $meta, $err) = $self->_get_cpanmetadb($module);
-    if ($meta) {
-        (my $permission, $err) = $self->_get_metacpan(@{$meta->{provides}});
-        if ($permission) {
-            my $res = {distfile => $meta->{distfile}, permission => $permission};
-            return $wantarray ? ($res, undef) : $res;
-        }
+    my @module = $meta ? @{$meta->{provides}} : ($module);
+    (my $permission, $err) = $self->_get_metacpan(@module);
+    if ($permission) {
+        my $res = {distfile => $meta->{distfile}, permission => $permission};
+        return $wantarray ? ($res, undef) : $res;
     }
     return $wantarray ? (undef, $err) : undef;
 }

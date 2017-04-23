@@ -10,11 +10,14 @@ die "Usage: $0 MODULE\n" if $module =~ /^(-h|--help)$/;
 my ($res, $err) = App::CPANPermission->new->get_permission_for($module);
 die "$err\n" unless $res;
 
-print "distribution: $res->{distfile}\n\n";
+my @permission = @{$res->{permission}};
+die "Not found\n" if @permission == 1 and !$permission[0]{owner};
+
+print "distribution: @{[$res->{distfile} || 'undef']}\n\n";
 my $table = App::CPANPermission::Table->new(qw(module_name owner co_maintainers));
-for my $perm (@{$res->{permission}}) {
+for my $perm (@permission) {
     my @co = @{ $perm->{co_maintainers} || [] };
-    my $co = @co ? join(",", @co) : 'N/A';
-    $table->add($perm->{module_name}, $perm->{owner} || 'N/A', $co);
+    my $co = @co ? join(",", @co) : 'undef';
+    $table->add($perm->{module_name}, $perm->{owner} || 'undef', $co);
 }
 print $table->stringify;
